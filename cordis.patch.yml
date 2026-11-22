@@ -1,0 +1,11 @@
+# dsh-azy-entry bundle patch.
+#
+# 一行 host 模块。`name` 必须和 package.json 的 name 一字不差（含 scope）：
+# 加载器拿它当模块说明符去 profile 的 node_modules 里解析，写成别的名字会
+# ERR_MODULE_NOT_FOUND。`id` 只是本 profile 内的标识。
+#
+# 浏览器半边不在这里挂：package.json 的 `dsh.client` 声明会让 web GUI 去加载
+# `exports["./client"]`，侧栏入口与页面都在那里注册。
+- insert:
+    - id: azy-entry
+      name: "dsh-azy-entry"
