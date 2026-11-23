@@ -140,7 +140,7 @@ ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-aizhiye
 
 | 项 | 取值 | 说明 |
 | --- | --- | --- |
-| `name` / `version` | `dsh-aizhiye` / `0.2.0` | 公共 npm 上该名字未被占用（2026-11-23 查为 404） |
+| `name` / `version` | `dsh-aizhiye` / 以 `package.json` 为准 | 已发布到公共 npm，`latest` 指向最新版本 |
 | `license` | `UNLICENSED` | 保留所有权利，npm 页面标注 Proprietary；授权范围见 `LICENSE` |
 | `private` | 未声明 | 该字段专用于阻止发布，一旦声明 `npm publish` 直接报错 |
 | `publishConfig.registry` | `https://registry.npmjs.org` | 发布目标写死为官方源，避免被本机镜像配置带偏 |
@@ -150,7 +150,7 @@ ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-aizhiye
 | `dsh.client` | `platform: web`、`immediately: true` | 没有它侧栏不会出现，点开是空白 |
 | `engines.dsh` | `>=0.2.0-rc.1 <0.3.0-0` | 兼容范围写在这里 |
 | `icon` | `icon.svg` | 清单可解析的包根图标，上限 256 KiB |
-| `files` | 7 个文件、25 kB | `npm pack --dry-run` 可复核；`test/` 不随包发布，`LICENSE` 由 npm 自动附带 |
+| `files` | 8 个文件、26 kB（含自动附带的 `LICENSE`） | `npm pack --dry-run` 可复核；`test/` 不随包发布 |
 
 `dshhub` 段是照插件市场的示例元数据写的，本机 0.2.2 的读取方不看它；是否必需取决于
 市场索引仓库的 schema，不影响安装。
@@ -164,12 +164,31 @@ ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-aizhiye
 ```bash
 npm login --registry=https://registry.npmjs.org   # 一次性
 npm publish
-git tag v0.2.0 && git push --tags
+git tag "v$(node -p "require('./package.json').version")" && git push --tags
 ```
 
 账号启用两步验证时，`publish` 会要求一次性验证码，用 `--otp=123456` 或交互输入。
 npm 上的版本一经发布不可覆盖：改完代码要么升版本号，要么先 `npm unpublish` 再重发
 （发布后 72 小时内才允许，且同名同版本可能被永久占用）。
+
+### 改完代码重新发布
+
+已发布的版本号不能复用，直接 `npm publish` 会报 403。按下表逐条走：
+
+| 步骤 | 命令 | 说明 |
+| --- | --- | --- |
+| 1 | `npm test` | 25 条用例应全绿；`prepublishOnly` 发布前会再自动跑一遍，不过则中断 |
+| 2 | `npm version patch` | 修 bug 或改文案用 `patch`，加功能用 `minor`，改清单结构或不兼容用 `major` |
+| 3 | `npm publish` | `publishConfig` 已固定官方源；启用 2FA 时补 `--otp=验证码` |
+| 4 | `git push --follow-tags` | 把 `npm version` 生成的提交和 tag 一并推到远端 |
+
+发布后核对线上版本号，确认 `latest` 已切到新版：
+
+```bash
+npm view dsh-aizhiye version
+```
+
+本机已装的 DSH 不会自动升级，需在插件管理里卸载再装新版，见下节。
 
 同名包已存在时 `publish` 会报 403。改用 scope 需要同时改三处，且三处必须一字不差：
 `package.json` 的 `name`、`cordis.patch.yml` 的 `name`、`node_modules` 下的目录名
