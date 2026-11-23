@@ -5,7 +5,8 @@
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "node --test test/yaml-edit.test.mjs test/compute-endpoints.test.mjs"
+    "test": "node --test test/yaml-edit.test.mjs test/compute-endpoints.test.mjs",
+    "prepublishOnly": "npm test"
   },
   "exports": {
     ".": "./index.js",
@@ -50,6 +51,28 @@
     }
   },
   "icon": "icon.svg",
+  "license": "UNLICENSED",
+  "author": "OraSight",
+  "keywords": [
+    "deepseek",
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "harness",
+    "plugin",
+    "aizhiye",
+    "爱职业",
+    "llm",
+    "provider"
+  ],
+  "homepage": "https://github.com/OraSight/aizhiye-dsh#readme",
+  "bugs": {
+    "url": "https://github.com/OraSight/aizhiye-dsh/issues"
+  },
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org",
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/OraSight/aizhiye-dsh.git"

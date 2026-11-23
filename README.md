@@ -138,29 +138,40 @@ ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-aizhiye
 
 ### 发布前清单
 
-| 项 | 现状 | 说明 |
+| 项 | 取值 | 说明 |
 | --- | --- | --- |
-| `private` | 已移除 | 官方类型定义写明它专门用来阻止发布，留着 `npm publish` 直接报错 |
 | `name` / `version` | `dsh-aizhiye` / `0.2.0` | 公共 npm 上该名字未被占用（2026-11-23 查为 404） |
+| `license` | `UNLICENSED` | 保留所有权利，npm 页面标注 Proprietary；授权范围见 `LICENSE` |
+| `private` | 未声明 | 该字段专用于阻止发布，一旦声明 `npm publish` 直接报错 |
+| `publishConfig.registry` | `https://registry.npmjs.org` | 发布目标写死为官方源，避免被本机镜像配置带偏 |
+| `scripts.prepublishOnly` | `npm test` | 发布前自动跑测试，用例不过则中断发布 |
 | `dsh.manifestVersion` | `1` | 清单格式标识，与包版本无关 |
 | `dsh.bundle.patch` | `./cordis.patch.yml` | 加载器按它挂 host 模块 |
 | `dsh.client` | `platform: web`、`immediately: true` | 没有它侧栏不会出现，点开是空白 |
-| `engines.dsh` | `>=0.2.0-rc.1 <0.3.0-0` | 兼容范围写在这里；非官方字段 `dsh.compatibility` 已删 |
+| `engines.dsh` | `>=0.2.0-rc.1 <0.3.0-0` | 兼容范围写在这里 |
 | `icon` | `icon.svg` | 清单可解析的包根图标，上限 256 KiB |
-| `files` | 7 个文件、21 kB | `npm pack --dry-run` 可复核；`test/` 不随包发布 |
+| `files` | 7 个文件、25 kB | `npm pack --dry-run` 可复核；`test/` 不随包发布，`LICENSE` 由 npm 自动附带 |
 
 `dshhub` 段是照插件市场的示例元数据写的，本机 0.2.2 的读取方不看它；是否必需取决于
 市场索引仓库的 schema，不影响安装。
 
 ### 发到公共 npm
 
+本机 npm 全局 registry 通常指向 `registry.npmmirror.com` 这类镜像。镜像是只读的，
+登录和发布都会失败，因此 login 必须显式指明官方源；`publish` 已被 `publishConfig`
+固定到官方源，不必再带参数。
+
 ```bash
-npm login                      # 一次性
-npm publish                    # 无 scope 的公共包，免费，无需 --access
+npm login --registry=https://registry.npmjs.org   # 一次性
+npm publish
 git tag v0.2.0 && git push --tags
 ```
 
-同名包已存在时 `publish` 会 403。改用 scope 需要同时改三处，且三处必须一字不差：
+账号启用两步验证时，`publish` 会要求一次性验证码，用 `--otp=123456` 或交互输入。
+npm 上的版本一经发布不可覆盖：改完代码要么升版本号，要么先 `npm unpublish` 再重发
+（发布后 72 小时内才允许，且同名同版本可能被永久占用）。
+
+同名包已存在时 `publish` 会报 403。改用 scope 需要同时改三处，且三处必须一字不差：
 `package.json` 的 `name`、`cordis.patch.yml` 的 `name`、`node_modules` 下的目录名
 （scoped 包是被装成 `node_modules/@你的scope/dsh-aizhiye`）。
 
