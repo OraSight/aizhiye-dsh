@@ -1,7 +1,6 @@
 {
   "name": "dsh-azy-entry",
   "version": "0.2.0",
-  "private": true,
   "description": "在 DeepSeek Harness 左侧加入「爱职业」入口：用爱职业账号登录，把该账号的算力密钥与模型接到本地 Harness",
   "type": "module",
   "main": "index.js",
@@ -23,18 +22,13 @@
     "README.md"
   ],
   "dsh": {
+    "manifestVersion": 1,
     "bundle": {
       "patch": "./cordis.patch.yml"
     },
     "client": {
       "platform": "web",
       "immediately": true
-    },
-    "compatibility": {
-      "dsh": ">=0.2.0-rc.1 <0.3.0-0",
-      "dshReleases": {
-        "0.2.2-rc.1+": "compatible"
-      }
     }
   },
   "dshhub": {
@@ -54,5 +48,14 @@
         "https://ohhub.net"
       ]
     }
+  },
+  "icon": "icon.svg",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OraSight/aizhiye-dsh.git"
+  },
+  "engines": {
+    "dsh": ">=0.2.0-rc.1 <0.3.0-0",
+    "node": ">=20"
   }
 }

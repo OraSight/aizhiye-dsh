@@ -47,25 +47,165 @@
 为什么登录必须走 host：浏览器里直接打 `azy.ohhub.net` 会被 CORS 与 SameSite 拦，
 而且取回的密钥不该在页面里出现第二遍。host 用 Node `fetch` 直连，Cookie 自己管。
 
-## 装到本机 profile
+## 装到一台新的 DSH
 
-profile 用**包名**解析模块，所以目录名必须叫 `dsh-azy-entry`（与 `package.json` 的
-`name`、`cordis.patch.yml` 的 `name` 三处一致），写成别的名字会 `ERR_MODULE_NOT_FOUND`。
+### 前置
+
+| 项 | 要求 | 怎么确认 |
+| --- | --- | --- |
+| DSH 版本 | `0.2.x`（`package.json` 声明 `>=0.2.0-rc.1 <0.3.0-0`） | 应用「关于」；实测 0.2.2-rc.5 |
+| profile 目录 | 至少启动过一次 DSH，才会有 `~/.dsh/profiles/desktop` | `ls ~/.dsh/profiles/desktop` |
+| 模型插件项 | profile 的 `cordis.patch.yml` 里有 `@deepseek-ai/dsh-llm-pi-ai` | `grep dsh-llm-pi-ai ~/.dsh/profiles/desktop/cordis.patch.yml` |
+
+最后一项是硬条件：配置写入的是 `llm-pi-ai` 的 `providers` 段，缺这一项会在点
+「配置到 Harness」时报「补丁文件里没有 llm-pi-ai 项」。官方 base bundle 自带，只有
+被手工精简过的 profile 才会缺。
+
+### 三步
+
+**1. 取代码**
 
 ```bash
-# 1) 放进 profile 的 node_modules
-git clone git@github.com:OraSight/aizhiye-dsh.git \
-  "$HOME/.dsh/profiles/desktop/node_modules/dsh-azy-entry"
-
-# 2) profile 清单里登记（~/.dsh/profiles/desktop/package.json）
-#    "dependencies": { ..., "dsh-azy-entry": "file:D:/coding/aizhiye-dsh" }
-#    "dsh": { "profile": { "bundles": [ ..., "dsh-azy-entry" ] } }
-
-# 3) 重启 DeepSeek Harness Desktop
+git clone git@github.com:OraSight/aizhiye-dsh.git ~/aizhiye-dsh
 ```
 
-本地开发时更省事：把 `node_modules/dsh-azy-entry` 做成指向上面的克隆目录的软链，
-改完重启即可，不用反复复制。
+没有这台机器的 SSH key 时，从能访问的机器整目录拷过去也行——插件没有构建步骤，
+`index.js` / `client.js` 就是可运行的源文件。
+
+**2. 放进 profile 的 `node_modules`**
+
+目录名必须是 `dsh-azy-entry`：加载器拿 `cordis.patch.yml` 里的 `name` 当模块说明符，
+从 profile 的 `node_modules` 解析，写错就是 `ERR_MODULE_NOT_FOUND`。
+
+推荐做成目录联结 / 软链，以后 `git pull` 直接生效：
+
+```powershell
+# Windows：junction 不需要管理员权限（符号链接才需要）
+New-Item -ItemType Junction -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-azy-entry" -Target "$env:USERPROFILE\aizhiye-dsh"
+```
+
+```bash
+# macOS / Linux
+ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-azy-entry
+```
+
+不想留链接也可以整目录复制，代价是每次更新都要重新复制一次。
+
+**3. 在 profile 清单里登记**
+
+编辑 `~/.dsh/profiles/desktop/package.json`，两处各加一项：
+
+```json
+{
+  "dependencies": { "dsh-azy-entry": "file:D:/Users/you/aizhiye-dsh" },
+  "dsh": { "profile": { "bundles": ["...", "dsh-azy-entry"] } }
+}
+```
+
+`dependencies` 记包的来源，`dsh.profile.bundles` 才是「启动时加载它」的开关——两处都要有。
+前者若与第 2 步的实际路径不一致，将来跑一次 `npm install` 会把 `node_modules` 里那份
+换成旧路径的内容。
+
+然后**完全退出 DSH 再启动**（托盘图标也要退，只关窗口不算）。模块在应用启动时加载，
+热重载不覆盖 host 半边。
+
+### 装好后的验收
+
+1. 左侧栏出现「爱职业」（彩色魔方图标）；
+2. 点开是插件自己的登录表单，不是远端登录页；
+3. 用教师或学员账号登录，能看到姓名、学校、以及**自己名下**的算力额度；
+4. 点「配置到 Harness」，出现「已配置 N 个模型 · 密钥 XXXX••••XXXX」；
+5. 「设置 → 模型」里出现「爱职业（算力）」分组，选一个模型能正常对话。
+
+### 没装上时查什么
+
+| 现象 | 原因 | 处理 |
+| --- | --- | --- |
+| 左栏没有「爱职业」 | `bundles` 没加，或目录名不是 `dsh-azy-entry` | 对照清单逐项核对，重启 |
+| 启动报 `ERR_MODULE_NOT_FOUND: dsh-azy-entry` | `cordis.patch.yml` 的 `name` 与目录名不一致 | 包名、目录名、patch 的 `name` 必须一致 |
+| 点开是一块空白 | 浏览器半边没加载（`dsh.client` 声明缺失） | 用仓库原样的 `package.json`，别删 `dsh.client` |
+| 登录报「连不上 azy.ohhub.net」 | 网络或代理拦截 | 先用浏览器打开一次 azy 确认可达 |
+| 提示「补丁文件里没有 llm-pi-ai 项」 | profile 缺模型插件 | 见上文前置条件 |
+| 提示「角色不在算力白名单」 | 用的是平台管理员等非教师/学员账号 | 换教师或学员账号 |
+
+启动日志在 `%APPDATA%\@deepseek-ai\dsh-desktop\logs`（macOS 在
+`~/Library/Application Support/@deepseek-ai/dsh-desktop/logs`），插件加载失败会在这里留原始堆栈。
+
+## 发布到 npm
+
+发布之后，别人在 DSH 的「安装插件」里填 `dsh-azy-entry`、选对应安装源即可，不必手改
+`node_modules` 与 profile 清单。
+
+### 发布前清单
+
+| 项 | 现状 | 说明 |
+| --- | --- | --- |
+| `private` | 已移除 | 官方类型定义写明它专门用来阻止发布，留着 `npm publish` 直接报错 |
+| `name` / `version` | `dsh-azy-entry` / `0.2.0` | 公共 npm 上该名字未被占用（2026-11-23 查为 404） |
+| `dsh.manifestVersion` | `1` | 清单格式标识，与包版本无关 |
+| `dsh.bundle.patch` | `./cordis.patch.yml` | 加载器按它挂 host 模块 |
+| `dsh.client` | `platform: web`、`immediately: true` | 没有它侧栏不会出现，点开是空白 |
+| `engines.dsh` | `>=0.2.0-rc.1 <0.3.0-0` | 兼容范围写在这里；非官方字段 `dsh.compatibility` 已删 |
+| `icon` | `icon.svg` | 清单可解析的包根图标，上限 256 KiB |
+| `files` | 7 个文件、21 kB | `npm pack --dry-run` 可复核；`test/` 不随包发布 |
+
+`dshhub` 段是照插件市场的示例元数据写的，本机 0.2.2 的读取方不看它；是否必需取决于
+市场索引仓库的 schema，不影响安装。
+
+### 发到公共 npm
+
+```bash
+npm login                      # 一次性
+npm publish                    # 无 scope 的公共包，免费，无需 --access
+git tag v0.2.0 && git push --tags
+```
+
+同名包已存在时 `publish` 会 403。改用 scope 需要同时改三处，且三处必须一字不差：
+`package.json` 的 `name`、`cordis.patch.yml` 的 `name`、`node_modules` 下的目录名
+（scoped 包是被装成 `node_modules/@你的scope/dsh-azy-entry`）。
+
+### 发到私有源
+
+私有源适合内网：包不进公共 npm，但安装体验一样。
+
+```bash
+# GitHub Packages（scope 必须是仓库所属 org）
+npm login --registry=https://npm.pkg.github.com
+npm publish --registry=https://npm.pkg.github.com
+
+# Verdaccio / Nexus / 阿里云私有 npm 等，换成自建地址即可
+npm publish --registry=https://npm.example.com/
+```
+
+长期项目建议把地址写进 `package.json`，免得每次带参数：
+
+```json
+"publishConfig": { "registry": "https://npm.example.com/" }
+```
+
+凭据不要进仓库。令牌放**本机** `~/.npmrc`（DSH 的提示原文也是这么说的）：
+
+```
+//npm.example.com/:_authToken=${NPM_TOKEN}
+```
+
+也可以直接写死令牌，但那样任何能读你家目录的进程都能拿到它。
+
+### 在 DSH 里装
+
+1. 打开插件管理 → 安装；
+2. 包名填 `dsh-azy-entry`；
+3. 安装源：公共包选「npm 官方源」或「中国大陆镜像源」；私有包选「自定义地址」并填
+   `https://npm.example.com/`（需登录的源，凭据已在 `~/.npmrc`）；
+4. 装完重启 DSH。
+
+非官方插件**没有增量更新**：DSH 的提示原文是「其他插件请先卸载再安装新版」，所以发布
+新版本后要在插件管理里卸载再装，不能指望它自己升。版本号按 SemVer 递增即可。
+
+### 不发布也能装
+
+安装框同样接受 Git 地址与本地路径。内部几个人用、不打算维护 registry 时，直接把仓库
+地址或本地目录填进去更省事；代价是每台机器要能访问那个地址，且升级得重新装一次。
 
 ## 验证
 
