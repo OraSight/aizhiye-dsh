@@ -232,11 +232,18 @@ window.__ModuleLoader__.load({
               '学校 #' + (data.schoolId == null ? '—' : data.schoolId) + ' · ' + (data.user.role || 'learner'),
             ),
           ),
-          h('button', {
-            type: 'button',
-            style: Object.assign({}, S.quiet, { marginLeft: 'auto' }),
-            onClick: props.onLogout,
-          }, '退出登录'),
+          h('div', { style: { marginLeft: 'auto', display: 'flex', gap: 8, flex: 'none' } },
+            h('button', {
+              type: 'button',
+              style: S.quiet,
+              onClick: props.onRefresh,
+            }, '重新读取'),
+            h('button', {
+              type: 'button',
+              style: S.quiet,
+              onClick: props.onLogout,
+            }, '退出登录'),
+          ),
         ),
 
         data.tokenError ? h('div', { style: S.err, role: 'alert' }, data.tokenError) : null,
@@ -274,8 +281,27 @@ window.__ModuleLoader__.load({
                 h('span', { style: S.meta }, '写入 provider「itedu」与网关的聊天模型'),
               ),
             )
-          : h('div', { style: Object.assign({}, S.err, { marginTop: 16 }) },
-              '这个账号名下还没有算力密钥，先到爱职业的算力页面领取。'),
+          : data.tokenError
+            ? null
+            : h('div', {
+                style: {
+                  marginTop: 16,
+                  padding: '12px 14px',
+                  borderRadius: 8,
+                  border: '1px dashed var(--dsw-alias-border, rgba(127,127,127,.35))',
+                  fontSize: 12.5,
+                  lineHeight: 1.7,
+                  opacity: .82,
+                },
+              },
+              '这个账号名下还没有算力密钥。到爱职业的「算力」页面创建一把，再回来点「重新读取」。',
+              h('br'),
+              h('a', {
+                href: 'https://azy.ohhub.net/workspace/compute',
+                target: '_blank',
+                rel: 'noreferrer',
+                style: { color: 'inherit', fontSize: 12 },
+              }, '打开算力页面 ↗')),
 
         error ? h('div', { style: S.err, role: 'alert' }, error) : null,
 
@@ -284,7 +310,7 @@ window.__ModuleLoader__.load({
               '已配置 ' + result.models.length + ' 个模型 · 密钥 ' + result.maskedKey + ' · ' + (result.configChanged ? '配置文件已更新' : '配置文件无变化'),
               h('br'),
               h('span', { style: { opacity: .85 } },
-                '到「设置 → 模型」选「爱职业（学生算力）」下的模型。若模型列表暂时没出现，重启一次 Harness 即可。'),
+                '到「设置 → 模型」选「爱职业（算力）」下的模型。若模型列表暂时没出现，重启一次 Harness 即可。'),
             )
           : null,
       )
@@ -323,15 +349,15 @@ window.__ModuleLoader__.load({
             h(AzyIcon, { size: 30 }),
             h('div', null,
               h('p', { style: S.eyebrow }, 'DeepSeek Harness × 爱职业'),
-              h('h1', { style: S.title }, '学生算力接入'),
+              h('h1', { style: S.title }, '算力接入'),
             ),
           ),
           h('p', { style: S.lede },
-            '用爱职业账号登录，把学校分配给你的算力密钥接到这台 Harness 上。配置完成后，模型列表里会多出「爱职业（学生算力）」一组模型，直接选来用即可。'),
+            '用爱职业账号登录，把学校分配给这个账号的算力密钥接到这台 Harness 上。配置完成后，模型列表里会多出「爱职业（算力）」一组模型，直接选来用即可。'),
           view.loading
             ? h('div', { style: Object.assign({}, S.card, { fontSize: 13, opacity: .7 }) }, '正在读取本机登录状态…')
             : view.signedIn
-              ? h(Dashboard, { data: view.data, onLogout: logout })
+              ? h(Dashboard, { data: view.data, onLogout: logout, onRefresh: load })
               : h(LoginCard, { onSignedIn: () => { setError(''); load() } }),
           error ? h('div', { style: S.err, role: 'alert' }, error) : null,
         ),

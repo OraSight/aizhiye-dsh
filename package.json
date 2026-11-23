@@ -2,11 +2,11 @@
   "name": "dsh-azy-entry",
   "version": "0.2.0",
   "private": true,
-  "description": "在 DeepSeek Harness 左侧加入「爱职业」入口：用爱职业账号登录，把学生算力密钥与模型接到本地 Harness",
+  "description": "在 DeepSeek Harness 左侧加入「爱职业」入口：用爱职业账号登录，把该账号的算力密钥与模型接到本地 Harness",
   "type": "module",
   "main": "index.js",
   "scripts": {
-    "test": "node --test test/yaml-edit.test.mjs"
+    "test": "node --test test/yaml-edit.test.mjs test/compute-endpoints.test.mjs"
   },
   "exports": {
     ".": "./index.js",
@@ -40,7 +40,7 @@
   "dshhub": {
     "schemaVersion": 1,
     "displayName": "爱职业",
-    "summary": "左侧工具条加入「爱职业」入口。用爱职业账号登录，读取学校分配的学生算力密钥，自动在本地 Harness 里配好指向 ohhub.net/v1 的模型，配置完即可直接选用。",
+    "summary": "左侧工具条加入「爱职业」入口。用爱职业账号登录，读取该账号名下的算力密钥，自动在本地 Harness 里配好指向 ohhub.net/v1 的模型，配置完即可直接选用。",
     "categories": [
       "入口",
       "模型"

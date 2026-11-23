@@ -5,7 +5,7 @@
 自己的页面里完成三件事：
 
 1. 用爱职业账号登录；
-2. 读取本校分配给你的**学生算力密钥**；
+2. 读取这个账号名下的**算力密钥**（教师与学员都支持）；
 3. 把密钥与一组指向 `https://ohhub.net/v1` 的模型写进本机 Harness，
    之后在「设置 → 模型」里就能直接选用。
 
@@ -33,6 +33,11 @@
 | `client.js` | 浏览器半边：`sidebar.panellist` 一行 + `main` 页面（登录表单、额度、配置按钮） |
 | `cordis.patch.yml` | 按包名挂一行 host 模块（`id: azy-entry`） |
 | `test/yaml-edit.test.mjs` | 12 条回归：别的 provider/注释不被吃掉、`refs: {}` 被正确展开、重复执行等价 |
+
+算力接口按角色分流：教师走 `/api/v1/compute/tokens`，学员走
+`/api/v1/learner/compute/tokens`，两侧 handler 各自校验 role，走错门只会得到
+403 `Permission denied`。字段与 reveal 语义相同（reveal 共用同一个 handler，按当前
+会话用户取自己的 token），所以差别只在路径前缀——见 `index.js` 的 `computeEndpoints`。
 
 为什么登录必须走 host：浏览器里直接打 `azy.ohhub.net` 会被 CORS 与 SameSite 拦，
 而且取回的密钥不该在页面里出现第二遍。host 用 Node `fetch` 直连，Cookie 自己管。
@@ -70,7 +75,7 @@ npm test
 2. 点开是登录表单（不是远端登录页）；
 3. 登录后看到学员姓名、学校、算力额度与有效期；
 4. 点「配置到 Harness」，提示已写入的模型数与密钥掩码；
-5. 到「设置 → 模型」选「爱职业（学生算力）」下的模型。若列表没出现，重启一次。
+5. 到「设置 → 模型」选「爱职业（算力）」下的模型。若列表没出现，重启一次。
 
 ## 配置的形态
 
@@ -82,7 +87,7 @@ npm test
   config:
     providers:
       itedu:
-        displayName: 爱职业（学生算力）
+        displayName: 爱职业（算力）
         apiKeyEnv: ITEDU_AZY_KEY
         api: openai-completions
         baseURL: https://ohhub.net/v1
@@ -106,7 +111,8 @@ npm test
 
 ## 已知边界
 
-- 只接**学员**算力：教师账号在 `/workspace/compute` 的取密钥接口不同，暂未适配。
+- 教师与学员各走一条接口（`/api/v1/compute/tokens` 与 `/api/v1/learner/compute/tokens`），
+  按会话里的角色自动选；平台管理员角色不在这两条之内，会提示读不到。
 - 密钥有效期以爱职业返回的 `expires_at` 为准；到期后重新点一次「配置到 Harness」
   即可换新密钥，不需要改配置。
 - 一个 DSH profile 里只应装一份；同时装两份会抢同一个 `providers.itedu` 键。

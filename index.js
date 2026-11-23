@@ -28,7 +28,7 @@ const ORIGIN = 'https://azy.ohhub.net'
 const GATEWAY = 'https://ohhub.net/v1'
 const PROVIDER_ID = 'itedu'
 const CREDENTIAL_REF = 'ITEDU_AZY_KEY'
-const PROVIDER_LABEL = '爱职业（学生算力）'
+const PROVIDER_LABEL = '爱职业（算力）'
 
 /** 传给纯函数的一处集中声明，避免两边各写一份字面量。 */
 const PROVIDER_SPEC = {
@@ -157,6 +157,22 @@ function upstreamMessage(result, fallback) {
   return typeof detail === 'string' && detail.trim() ? detail : fallback
 }
 
+/**
+ * 两套算力接口，按会话里的角色选。
+ *
+ * ITEDU 把「我自己的 token」拆成了两条路：教师走 `/api/v1/compute/tokens`，学员走
+ * `/api/v1/learner/compute/tokens`，两边的 handler 各自校验 role，走错门一律 403
+ * `Permission denied`。字段与 reveal 语义完全一致（reveal 共用同一个 handler，都按
+ * 当前会话用户取自己的 token），所以差别只在路径前缀。
+ */
+export function computeEndpoints(role) {
+  const base = role === 'teacher' ? '/api/v1/compute/tokens' : '/api/v1/learner/compute/tokens'
+  return {
+    list: base,
+    key: tokenId => `${base}/${encodeURIComponent(tokenId)}/key`,
+  }
+}
+
 // ------------------------------------------------------------------ 状态文件
 
 const EMPTY_STATE = { username: '', displayName: '', cookie: '', schoolId: null, savedAt: 0 }
@@ -240,13 +256,22 @@ async function sessionSnapshot(state) {
 
   const schools = Array.isArray(session.data?.schools) ? session.data.schools : []
   const schoolId = state.schoolId ?? schools[0]?.school_id ?? null
+  const user = session.data?.user ?? {}
+  const role = user.role ?? ''
+  const endpoints = computeEndpoints(role)
 
   let tokens = []
   let tokenError = ''
   if (schoolId) {
-    const list = await itedu('/api/v1/learner/compute/tokens', { cookie: state.cookie, schoolId })
+    const list = await itedu(endpoints.list, { cookie: state.cookie, schoolId })
     if (list.status === 200) {
       tokens = Array.isArray(list.data?.items) ? list.data.items : []
+    } else if (list.status === 403) {
+      // 走错门或首次登录未改密都会到这里。后端原文只有一句 Permission denied，
+      // 直接摊给用户等于什么都没说，所以按角色替他说清下一步。
+      tokenError = role === 'teacher' || role === 'learner'
+        ? '这个账号暂时读不到算力密钥。若刚用初始密码登录过，请先在爱职业里改完密码，再回到这里点「重新读取」。'
+        : '这个账号的角色不在算力白名单内，读不到算力密钥。'
     } else {
       tokenError = upstreamMessage(list, `读取算力密钥失败（HTTP ${list.status}）`)
     }
@@ -254,12 +279,11 @@ async function sessionSnapshot(state) {
     tokenError = '账号没有关联学校，取不到算力密钥'
   }
 
-  const user = session.data?.user ?? {}
   return {
     user: {
       username: user.username ?? state.username,
       displayName: user.display_name ?? state.displayName,
-      role: user.role ?? '',
+      role,
     },
     schoolId,
     tokens: tokens.map(token => ({
@@ -286,12 +310,19 @@ async function revealKey(state, tokenId) {
   if (!token) throw new HttpError(404, snapshot.tokenError || '这个账号没有可用的算力密钥')
   if (!token.keyAvailable) throw new HttpError(409, '这把密钥当前不可取回，请到爱职业的算力页面查看')
 
-  const result = await itedu(`/api/v1/learner/compute/tokens/${encodeURIComponent(token.id)}/key`, {
+  const endpoints = computeEndpoints(snapshot.user.role)
+  const result = await itedu(endpoints.key(token.id), {
     method: 'POST',
     cookie: state.cookie,
     schoolId: snapshot.schoolId,
     body: {},
   })
+  if (result.status === 403) {
+    // 这个 403 只有两种来源：角色不在白名单，或账号还挂着「必须改初始密码」。
+    // 角色已在选路径时定过，所以这里多半是后者——把下一步说出来，别只丢一句
+    // Permission denied。
+    throw new HttpError(403, '这个账号暂时不能取回密钥。若这是用初始密码登录的，先在爱职业里改完密码，再回来点「重新读取」。')
+  }
   if (result.status !== 200) {
     throw new HttpError(result.status >= 500 ? 502 : result.status, upstreamMessage(result, '取回算力密钥失败'))
   }
