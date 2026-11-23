@@ -223,6 +223,9 @@ window.__ModuleLoader__.load({
       }
 
       const who = (data.user.displayName || data.user.username) + ' · ' + data.user.username
+      // 教师的算力页有两个页签，自己的那把在「我的Token密钥」（`?tab=mine`，REQ-375）。
+      const isTeacher = data.user.role === 'teacher'
+      const computeUrl = 'https://azy.ohhub.net/workspace/compute' + (isTeacher ? '?tab=mine' : '')
 
       return h('div', { style: S.card },
         h('div', { style: S.row },
@@ -294,14 +297,16 @@ window.__ModuleLoader__.load({
                   opacity: .82,
                 },
               },
-              '这个账号名下还没有算力密钥。到爱职业的「算力」页面创建一把，再回来点「重新读取」。',
+              isTeacher
+                ? '这个账号还没有「我的Token密钥」。教师自己的那一把要去算力页的「我的Token密钥」页签创建（每位教师一把），建好再回来点「重新读取」。'
+                : '这个账号名下还没有算力密钥。到爱职业的「算力」页面创建或领取一把，再回来点「重新读取」。',
               h('br'),
               h('a', {
-                href: 'https://azy.ohhub.net/workspace/compute',
+                href: computeUrl,
                 target: '_blank',
                 rel: 'noreferrer',
                 style: { color: 'inherit', fontSize: 12 },
-              }, '打开算力页面 ↗')),
+              }, isTeacher ? '打开「我的Token密钥」↗' : '打开算力页面 ↗')),
 
         error ? h('div', { style: S.err, role: 'alert' }, error) : null,
 

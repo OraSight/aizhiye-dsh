@@ -39,6 +39,11 @@
 403 `Permission denied`。字段与 reveal 语义相同（reveal 共用同一个 handler，按当前
 会话用户取自己的 token），所以差别只在路径前缀——见 `index.js` 的 `computeEndpoints`。
 
+路径之外还有一层归属：教师接口按 `teacher_id` 取数，返回的列表里混着
+`kind='teacher'`（他自己那把）和 `kind='student'`（他分配给学生、密钥归学生的那些）。
+后者不是给教师用的——reveal 按 `learner_id` 校验，取只会失败，所以只保留
+`kind='teacher'`，与页面上「我的Token密钥」页签同一口径（`pickOwnTokens`）。
+
 为什么登录必须走 host：浏览器里直接打 `azy.ohhub.net` 会被 CORS 与 SameSite 拦，
 而且取回的密钥不该在页面里出现第二遍。host 用 Node `fetch` 直连，Cookie 自己管。
 

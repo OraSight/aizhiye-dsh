@@ -173,6 +173,21 @@ export function computeEndpoints(role) {
   }
 }
 
+/**
+ * 从列表里挑出「真正归这个账号」的密钥。
+ *
+ * 教师接口按 `teacher_id` 取数，同一份列表混着两类：`kind='teacher'` 是他自己的
+ * 一把，`kind='student'` 是他分配给学生的那些（`teacher_id` 也是他，`learner_id`
+ * 是学生）。后者不是给教师用的——reveal 按 `learner_id` 校验，教师取只会失败。
+ * 页面上也把这两类分在两个页签，「我的Token密钥」= `kind='teacher'`。
+ *
+ * 学员接口按 `learner_id` 取数，返回的本就都是自己的，不必再筛。
+ */
+export function pickOwnTokens(role, items) {
+  const list = Array.isArray(items) ? items : []
+  return role === 'teacher' ? list.filter(token => token && token.kind === 'teacher') : list
+}
+
 // ------------------------------------------------------------------ 状态文件
 
 const EMPTY_STATE = { username: '', displayName: '', cookie: '', schoolId: null, savedAt: 0 }
@@ -265,7 +280,7 @@ async function sessionSnapshot(state) {
   if (schoolId) {
     const list = await itedu(endpoints.list, { cookie: state.cookie, schoolId })
     if (list.status === 200) {
-      tokens = Array.isArray(list.data?.items) ? list.data.items : []
+      tokens = pickOwnTokens(role, list.data?.items)
     } else if (list.status === 403) {
       // 走错门或首次登录未改密都会到这里。后端原文只有一句 Permission denied，
       // 直接摊给用户等于什么都没说，所以按角色替他说清下一步。
