@@ -70,9 +70,18 @@ git clone git@github.com:OraSight/aizhiye-dsh.git \
 ## 验证
 
 ```bash
-# 配置改写逻辑（不需要 DSH 在跑）
+# 配置改写与接口分工（不需要 DSH 在跑）
 npm test
+
+# 服务注入契约：凭据服务存在时走 service、缺失时退回文件。
+# 需要真实账号，且会用临时 DSH_HOME，不碰你的真实配置，所以不在 npm test 里。
+QA_STUDENT_PASSWORD=... node test/manual/inject-check.mjs --with-credentials
+QA_STUDENT_PASSWORD=... node test/manual/inject-check.mjs --without-credentials
 ```
+
+`inject-check` 把假 ctx 做成了「未声明的服务一读就抛」——这正是 Cordis 的真实行为。
+早先版本的脚本直接放行 `ctx.credentials`，于是真实环境里点「配置到 Harness」才炸
+`cannot get property "credentials" without inject`，而测试是绿的。
 
 装好之后：
 

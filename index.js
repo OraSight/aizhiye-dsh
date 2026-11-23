@@ -209,8 +209,17 @@ async function writeState(next) {
 
 // ------------------------------------------------------------------ 凭据
 
-async function writeCredential(ctx, refName, value) {
-  const service = ctx?.credentials ?? (typeof ctx?.get === 'function' ? ctx.get('credentials') : undefined)
+/**
+ * 凭据服务只能经 Cordis 声明后访问：直接读未声明的 `ctx.credentials` 会抛
+ * `cannot get property "credentials" without inject`（2026-11-23 实际踩到，点
+ * 「配置到 Harness」才暴露）。所以不在请求路径里碰 `ctx`，而是由 `apply` 里的
+ * `ctx.inject(['credentials'], …)` 把服务交进来；没装该服务（或注入未完成）时
+ * `writeCredential` 退回直接写 `~/.dsh/.credentials.yaml` 的 `refs` 段。
+ */
+let credentialsService = null
+
+async function writeCredential(refName, value) {
+  const service = credentialsService
   if (service && typeof service.set === 'function') {
     try {
       await service.set(refName, value)
@@ -365,7 +374,7 @@ async function listGatewayModels(key) {
 
 // ------------------------------------------------------------------ HTTP 入口
 
-function createHandler(ctx) {
+function createHandler() {
   return async function handle(req, res) {
     const url = new URL(req.url ?? '/', 'http://azy.local')
     const route = url.pathname.replace(new RegExp(`^${PREFIX}`), '') || '/'
@@ -416,7 +425,7 @@ function createHandler(ctx) {
         const state = await readState()
         const { key, token } = await revealKey(state, body?.tokenId)
         const models = await listGatewayModels(key)
-        const credentialSink = await writeCredential(ctx, CREDENTIAL_REF, key)
+        const credentialSink = await writeCredential(CREDENTIAL_REF, key)
         const written = await writeProviderConfig(models)
 
         return sendJson(res, 200, {
@@ -442,8 +451,14 @@ function createHandler(ctx) {
 }
 
 export function apply(ctx) {
+  // 两条注入分开：webServer 是硬依赖（没有它插件无事可做），credentials 是
+  // 增强（拿不到就写文件）。合成一条会让未装凭据服务的人连侧栏入口都没有。
+  ctx.inject(['credentials'], credCtx => {
+    credentialsService = credCtx.credentials
+    return () => { credentialsService = null }
+  })
   ctx.inject(['webServer'], webCtx => {
-    const dispose = webCtx.webServer.register({ kind: 'prefix', path: PREFIX, handler: createHandler(ctx) })
+    const dispose = webCtx.webServer.register({ kind: 'prefix', path: PREFIX, handler: createHandler() })
     return typeof dispose === 'function' ? dispose : undefined
   })
 }
