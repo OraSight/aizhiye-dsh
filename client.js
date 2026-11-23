@@ -170,7 +170,7 @@ window.__ModuleLoader__.load({
             id: 'azy-user',
             style: S.input,
             autoComplete: 'username',
-            placeholder: '学号或工号',
+            placeholder: '学生账号或者教师账号',
             value: username,
             onChange: event => setUsername(event.target.value),
           }),
