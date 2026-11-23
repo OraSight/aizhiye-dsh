@@ -7,5 +7,5 @@
 # 浏览器半边不在这里挂：package.json 的 `dsh.client` 声明会让 web GUI 去加载
 # `exports["./client"]`，侧栏入口与页面都在那里注册。
 - insert:
-    - id: azy-entry
+    - id: aizhiye-entry
       name: "dsh-aizhiye"

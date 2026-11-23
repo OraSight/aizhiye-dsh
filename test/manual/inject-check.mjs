@@ -38,12 +38,17 @@ if (!PASSWORD) {
 
 await fs.rm(SANDBOX, { recursive: true, force: true })
 await fs.mkdir(path.join(SANDBOX, 'profiles', 'desktop'), { recursive: true })
-await fs.mkdir(path.join(SANDBOX, 'storages', 'azy-entry'), { recursive: true })
+await fs.mkdir(path.join(SANDBOX, 'storages', 'aizhiye-entry'), { recursive: true })
 await fs.copyFile(
   path.join(REAL_HOME, 'profiles', 'desktop', 'cordis.patch.yml'),
   path.join(SANDBOX, 'profiles', 'desktop', 'cordis.patch.yml'),
 )
-await fs.writeFile(path.join(SANDBOX, '.credentials.yaml'), 'version: 1\nrefs: {}\nrecords: {}\n', 'utf8')
+// 预置改名前的旧引用名，用来验「配置一次就顺手清掉旧东西」。
+await fs.writeFile(
+  path.join(SANDBOX, '.credentials.yaml'),
+  'version: 1\nrefs:\n  ITEDU_AZY_KEY: "legacy-value"\nrecords: {}\n',
+  'utf8',
+)
 process.env.DSH_HOME = SANDBOX
 
 // ---------------------------------------------------------------- 假 ctx
@@ -133,18 +138,24 @@ console.log('apply:', applied.status, JSON.stringify({ ok: applied.data?.ok, sin
 
 const patch = await fs.readFile(path.join(SANDBOX, 'profiles', 'desktop', 'cordis.patch.yml'), 'utf8')
 const creds = await fs.readFile(path.join(SANDBOX, '.credentials.yaml'), 'utf8')
-const hasProvider = /providers:\s*\n\s+itedu:/.test(patch) || patch.includes('itedu:')
-const credsHasRef = creds.includes('ITEDU_AZY_KEY')
+const hasProvider = /providers:\s*\n\s+aizhiye:/.test(patch) || patch.includes('aizhiye:')
+const credsHasRef = creds.includes('AIZHIYE_KEY')
+// 改名迁移的两条读数：旧 provider 段与旧引用名都不该留下。
+const legacyProviderGone = !/^\s+itedu:$/m.test(patch)
+const legacyRefGone = !creds.includes('ITEDU_AZY_KEY')
 
 console.log('credentialSets:', calls.credentialSets.length, calls.credentialSets[0] ? `ref=${calls.credentialSets[0].ref} len=${calls.credentialSets[0].length}` : '')
 console.log('injects:', calls.injects.join(' | '))
-console.log('patch has itedu:', hasProvider, '| creds file has ref:', credsHasRef)
+console.log('patch has aizhiye:', hasProvider, '| creds file has ref:', credsHasRef)
+console.log('legacy provider gone:', legacyProviderGone, '| legacy ref gone:', legacyRefGone)
 console.log('key leaked into patch:', applied.data?.maskedKey ? patch.includes(String(applied.data.maskedKey).replace(/•/g, '')) : 'n/a')
 
 const expectSink = MODE === 'with' ? 'service' : 'file'
 const ok = applied.status === 200
   && applied.data?.credentialSink === expectSink
   && hasProvider
+  && legacyProviderGone
+  && legacyRefGone
   && (MODE === 'with' ? !credsHasRef : credsHasRef)
   && (MODE === 'with' ? calls.credentialSets.length === 1 : calls.credentialSets.length === 0)
 

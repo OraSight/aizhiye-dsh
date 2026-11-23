@@ -15,7 +15,7 @@ window.__ModuleLoader__.load({
     const React = require('react')
     const h = React.createElement
     const ICON = 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI1MTIiIGhlaWdodD0iNTEyIiB2aWV3Qm94PSIwIDAgNTEyIDUxMiIgcm9sZT0iaW1nIiBhcmlhLWxhYmVsPSLprZTmlrnpooTop4jvvJrlt6bpnaJU55Sx56ysMeOAgTLjgIEz44CBNeOAgTjmoLznu4TmiJDvvJvpobbpnaJI6auY5Lqu56ysMeOAgTPjgIE044CBNeOAgTbjgIE344CBOeagvO+8m+WPs+mdolXnlLHnrKwx44CBM+OAgTTjgIE244CBN+OAgTjjgIE55qC857uE5oiQ77yM54+K55Ga5bqV5LiO5rex6Z2S57u/6auY5LquIj48Zz48cG9seWdvbiBwb2ludHM9IjI1Ni4wMCw0Mi4wMCA0NDYuMDAsMTUwLjAwIDI1Ni4wMCwyNTguMDAgNjYuMDAsMTUwLjAwIiBmaWxsPSIjRkZENDNCIi8+PHBvbHlnb24gcG9pbnRzPSI2Ni4wMCwxNTAuMDAgMjU2LjAwLDI1OC4wMCAyNTYuMDAsNDc0LjAwIDY2LjAwLDM2Ni4wMCIgZmlsbD0iIzI5Q0JFMCIvPjxwb2x5Z29uIHBvaW50cz0iMjU2LjAwLDI1OC4wMCA0NDYuMDAsMTUwLjAwIDQ0Ni4wMCwzNjYuMDAgMjU2LjAwLDQ3NC4wMCIgZmlsbD0iI0ZGNjU0QSIvPjxwb2x5Z29uIHBvaW50cz0iMjU2LjAwLDQ1LjI0IDMxMy42Myw3OC4wMCAyNTYuMDAsMTEwLjc2IDE5OC4zNyw3OC4wMCIgZmlsbD0iIzdFM0ZCMiIvPjxwb2x5Z29uIHBvaW50cz0iMzgyLjY3LDExNy4yNCA0NDAuMzAsMTUwLjAwIDM4Mi42NywxODIuNzYgMzI1LjAzLDE1MC4wMCIgZmlsbD0iIzdFM0ZCMiIvPjxwb2x5Z29uIHBvaW50cz0iMTkyLjY3LDgxLjI0IDI1MC4zMCwxMTQuMDAgMTkyLjY3LDE0Ni43NiAxMzUuMDMsMTE0LjAwIiBmaWxsPSIjN0UzRkIyIi8+PHBvbHlnb24gcG9pbnRzPSIyNTYuMDAsMTE3LjI0IDMxMy42MywxNTAuMDAgMjU2LjAwLDE4Mi43NiAxOTguMzcsMTUwLjAwIiBmaWxsPSIjN0UzRkIyIi8+PHBvbHlnb24gcG9pbnRzPSIzMTkuMzMsMTUzLjI0IDM3Ni45NywxODYuMDAgMzE5LjMzLDIxOC43NiAyNjEuNzAsMTg2LjAwIiBmaWxsPSIjN0UzRkIyIi8+PHBvbHlnb24gcG9pbnRzPSIxMjkuMzMsMTE3LjI0IDE4Ni45NywxNTAuMDAgMTI5LjMzLDE4Mi43NiA3MS43MCwxNTAuMDAiIGZpbGw9IiM3RTNGQjIiLz48cG9seWdvbiBwb2ludHM9IjI1Ni4wMCwxODkuMjQgMzEzLjYzLDIyMi4wMCAyNTYuMDAsMjU0Ljc2IDE5OC4zNywyMjIuMDAiIGZpbGw9IiM3RTNGQjIiLz48cG9seWdvbiBwb2ludHM9IjY4Ljg1LDE1NC44NiAxMjYuNDgsMTg3LjYyIDEyNi40OCwyNTMuMTQgNjguODUsMjIwLjM4IiBmaWxsPSIjMUQzNTU3Ii8+PHBvbHlnb24gcG9pbnRzPSIxMzIuMTgsMTkwLjg2IDE4OS44MiwyMjMuNjIgMTg5LjgyLDI4OS4xNCAxMzIuMTgsMjU2LjM4IiBmaWxsPSIjMUQzNTU3Ii8+PHBvbHlnb24gcG9pbnRzPSIxOTUuNTIsMjI2Ljg2IDI1My4xNSwyNTkuNjIgMjUzLjE1LDMyNS4xNCAxOTUuNTIsMjkyLjM4IiBmaWxsPSIjMUQzNTU3Ii8+PHBvbHlnb24gcG9pbnRzPSIxMzIuMTgsMjYyLjg2IDE4OS44MiwyOTUuNjIgMTg5LjgyLDM2MS4xNCAxMzIuMTgsMzI4LjM4IiBmaWxsPSIjMUQzNTU3Ii8+PHBvbHlnb24gcG9pbnRzPSIxMzIuMTgsMzM0Ljg2IDE4OS44MiwzNjcuNjIgMTg5LjgyLDQzMy4xNCAxMzIuMTgsNDAwLjM4IiBmaWxsPSIjMUQzNTU3Ii8+PHBvbHlnb24gcG9pbnRzPSIyNTguODUsMjU5LjYyIDMxNi40OCwyMjYuODYgMzE2LjQ4LDI5Mi4zOCAyNTguODUsMzI1LjE0IiBmaWxsPSIjMEI0RjRCIi8+PHBvbHlnb24gcG9pbnRzPSIzODUuNTIsMTg3LjYyIDQ0My4xNSwxNTQuODYgNDQzLjE1LDIyMC4zOCAzODUuNTIsMjUzLjE0IiBmaWxsPSIjMEI0RjRCIi8+PHBvbHlnb24gcG9pbnRzPSIyNTguODUsMzMxLjYyIDMxNi40OCwyOTguODYgMzE2LjQ4LDM2NC4zOCAyNTguODUsMzk3LjE0IiBmaWxsPSIjMEI0RjRCIi8+PHBvbHlnb24gcG9pbnRzPSIzODUuNTIsMjU5LjYyIDQ0My4xNSwyMjYuODYgNDQzLjE1LDI5Mi4zOCAzODUuNTIsMzI1LjE0IiBmaWxsPSIjMEI0RjRCIi8+PHBvbHlnb24gcG9pbnRzPSIyNTguODUsNDAzLjYyIDMxNi40OCwzNzAuODYgMzE2LjQ4LDQzNi4zOCAyNTguODUsNDY5LjE0IiBmaWxsPSIjMEI0RjRCIi8+PHBvbHlnb24gcG9pbnRzPSIzMjIuMTgsMzY3LjYyIDM3OS44MiwzMzQuODYgMzc5LjgyLDQwMC4zOCAzMjIuMTgsNDMzLjE0IiBmaWxsPSIjMEI0RjRCIi8+PHBvbHlnb24gcG9pbnRzPSIzODUuNTIsMzMxLjYyIDQ0My4xNSwyOTguODYgNDQzLjE1LDM2NC4zOCAzODUuNTIsMzk3LjE0IiBmaWxsPSIjMEI0RjRCIi8+PGcgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjRkZGREY2IiBzdHJva2Utd2lkdGg9IjMuNSIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj48cGF0aCBkPSJNIDMxOS4zMyA3OC4wMCBMIDEyOS4zMyAxODYuMDAiLz48cGF0aCBkPSJNIDE5Mi42NyA3OC4wMCBMIDM4Mi42NyAxODYuMDAiLz48cGF0aCBkPSJNIDM4Mi42NyAxMTQuMDAgTCAxOTIuNjcgMjIyLjAwIi8+PHBhdGggZD0iTSAxMjkuMzMgMTE0LjAwIEwgMzE5LjMzIDIyMi4wMCIvPjxwYXRoIGQ9Ik0gMTI5LjMzIDE4Ni4wMCBMIDEyOS4zMyA0MDIuMDAiLz48cGF0aCBkPSJNIDY2LjAwIDIyMi4wMCBMIDI1Ni4wMCAzMzAuMDAiLz48cGF0aCBkPSJNIDE5Mi42NyAyMjIuMDAgTCAxOTIuNjcgNDM4LjAwIi8+PHBhdGggZD0iTSA2Ni4wMCAyOTQuMDAgTCAyNTYuMDAgNDAyLjAwIi8+PHBhdGggZD0iTSAzMTkuMzMgMjIyLjAwIEwgMzE5LjMzIDQzOC4wMCIvPjxwYXRoIGQ9Ik0gMjU2LjAwIDMzMC4wMCBMIDQ0Ni4wMCAyMjIuMDAiLz48cGF0aCBkPSJNIDM4Mi42NyAxODYuMDAgTCAzODIuNjcgNDAyLjAwIi8+PHBhdGggZD0iTSAyNTYuMDAgNDAyLjAwIEwgNDQ2LjAwIDI5NC4wMCIvPjwvZz48ZyBmaWxsPSJub25lIiBzdHJva2U9IiMxNzMzNjYiIHN0cm9rZS13aWR0aD0iNSIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIj48cGF0aCBkPSJNIDI1NiA0MiBMIDQ0NiAxNTAgTCAyNTYgMjU4IEwgNjYgMTUwIFoiLz48cGF0aCBkPSJNIDY2IDE1MCBMIDI1NiAyNTggTCAyNTYgNDc0IEwgNjYgMzY2IFoiLz48cGF0aCBkPSJNIDI1NiAyNTggTCA0NDYgMTUwIEwgNDQ2IDM2NiBMIDI1NiA0NzQgWiIvPjwvZz48L2c+PC9zdmc+'
-    const API = '/azy-entry-api'
+    const API = '/aizhiye-entry-api'
 
     /**
      * 配色一律走外壳的 alias 变量并带中性 fallback：深浅两套主题下都不出现
@@ -281,7 +281,7 @@ window.__ModuleLoader__.load({
                   onClick: apply,
                   style: Object.assign({}, S.primary, busy ? { opacity: .6, cursor: 'default' } : null),
                 }, busy ? '正在配置…' : '配置到 Harness'),
-                h('span', { style: S.meta }, '写入 provider「itedu」与网关的聊天模型'),
+                h('span', { style: S.meta }, '写入 provider「aizhiye」与网关的聊天模型'),
               ),
             )
           : data.tokenError
@@ -374,10 +374,10 @@ window.__ModuleLoader__.load({
       apply(ctx) {
         const disposers = []
         disposers.push(ctx.slots.inject('main', () => ctx.slots.register(
-          { name: 'main', key: 'azy-entry' }, AzyPage,
+          { name: 'main', key: 'aizhiye-entry' }, AzyPage,
         )))
         disposers.push(ctx.slots.inject('sidebar.panellist', () => ctx.slots.register(
-          { name: 'sidebar.panellist', id: 'azy-entry', order: 20, label: () => '爱职业' }, AzyIcon,
+          { name: 'sidebar.panellist', id: 'aizhiye-entry', order: 20, label: () => '爱职业' }, AzyIcon,
         )))
         const cleanup = () => {
           for (const dispose of disposers.splice(0).reverse()) dispose()

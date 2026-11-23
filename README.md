@@ -16,9 +16,9 @@
 
 | 数据 | 落到哪里 | 说明 |
 | --- | --- | --- |
-| 会话 Cookie | `~/.dsh/storages/azy-entry/state.json` | 只是会话；退出登录即清空 |
-| 算力密钥 | harness 凭据存储（`ctx.credentials`，退回 `~/.dsh/.credentials.yaml` 的 `refs`） | 引用名 `ITEDU_AZY_KEY`；页面上只显示首尾各四位 |
-| provider 路由 | `~/.dsh/profiles/<profile>/cordis.patch.yml` 的 `llm-pi-ai.config.providers.itedu` | 只写 `apiKeyEnv: ITEDU_AZY_KEY`，不写密钥 |
+| 会话 Cookie | `~/.dsh/storages/aizhiye-entry/state.json` | 只是会话；退出登录即清空 |
+| 算力密钥 | harness 凭据存储（`ctx.credentials`，退回 `~/.dsh/.credentials.yaml` 的 `refs`） | 引用名 `AIZHIYE_KEY`；页面上只显示首尾各四位 |
+| provider 路由 | `~/.dsh/profiles/<profile>/cordis.patch.yml` 的 `llm-pi-ai.config.providers.aizhiye` | 只写 `apiKeyEnv: AIZHIYE_KEY`，不写密钥 |
 
 第三点不是洁癖：`dsh-llm-pi-ai` 的约定是「配置文件绝不包含密钥」，密钥按请求经
 凭据 seam 解析。所以插件写配置时永远只写引用名——密钥本身进了凭据存储，改一次
@@ -28,10 +28,10 @@
 
 | 文件 | 职责 |
 | --- | --- |
-| `index.js` | host 半边：`/azy-entry-api/*` 四个接口——读状态、登录、配置、退出 |
+| `index.js` | host 半边：`/aizhiye-entry-api/*` 四个接口——读状态、登录、配置、退出 |
 | `lib/yaml-edit.js` | 两段行级改写的纯函数（写 `refs`、写 `providers`），单独成文件以便脱离运行时测试 |
 | `client.js` | 浏览器半边：`sidebar.panellist` 一行 + `main` 页面（登录表单、额度、配置按钮） |
-| `cordis.patch.yml` | 按包名挂一行 host 模块（`id: azy-entry`） |
+| `cordis.patch.yml` | 按包名挂一行 host 模块（`id: aizhiye-entry`） |
 | `test/yaml-edit.test.mjs` | 12 条回归：别的 provider/注释不被吃掉、`refs: {}` 被正确展开、重复执行等价 |
 
 算力接口按角色分流：教师走 `/api/v1/compute/tokens`，学员走
@@ -240,9 +240,9 @@ QA_STUDENT_PASSWORD=... node test/manual/inject-check.mjs --without-credentials
   name: "@deepseek-ai/dsh-llm-pi-ai"
   config:
     providers:
-      itedu:
+      aizhiye:
         displayName: 爱职业（算力）
-        apiKeyEnv: ITEDU_AZY_KEY
+        apiKeyEnv: AIZHIYE_KEY
         api: openai-completions
         baseURL: https://ohhub.net/v1
         defaultContextWindow: 131072
@@ -252,14 +252,14 @@ QA_STUDENT_PASSWORD=... node test/manual/inject-check.mjs --without-credentials
             name: deepseek-v4.1-flash
 ```
 
-改写是幂等的：重复点「配置到 Harness」只替换 `itedu:` 这一段，别的 provider 与
-文件里的注释一个字都不动。每次改动前会把原文件留一份 `cordis.patch.yml.azy-bak`。
+改写是幂等的：重复点「配置到 Harness」只替换 `aizhiye:` 这一段，别的 provider 与
+文件里的注释一个字都不动。每次改动前会把原文件留一份 `cordis.patch.yml.aizhiye-bak`。
 
 ## 卸载与回滚
 
-- 回滚配置：把 `cordis.patch.yml.azy-bak` 复制回 `cordis.patch.yml`，或手工删掉
-  `providers.itedu` 那一段。
-- 移除密钥：删掉 `.credentials.yaml` 里 `refs.ITEDU_AZY_KEY` 那一行（文件热重载）。
+- 回滚配置：把 `cordis.patch.yml.aizhiye-bak` 复制回 `cordis.patch.yml`，或手工删掉
+  `providers.aizhiye` 那一段。
+- 移除密钥：删掉 `.credentials.yaml` 里 `refs.AIZHIYE_KEY` 那一行（文件热重载）。
 - 移除插件：从 profile 的 `dependencies` 与 `dsh.profile.bundles` 里删掉
   `dsh-aizhiye`，再删 `node_modules/dsh-aizhiye`，重启应用。
 
@@ -269,5 +269,5 @@ QA_STUDENT_PASSWORD=... node test/manual/inject-check.mjs --without-credentials
   按会话里的角色自动选；平台管理员角色不在这两条之内，会提示读不到。
 - 密钥有效期以爱职业返回的 `expires_at` 为准；到期后重新点一次「配置到 Harness」
   即可换新密钥，不需要改配置。
-- 一个 DSH profile 里只应装一份；同时装两份会抢同一个 `providers.itedu` 键。
+- 一个 DSH profile 里只应装一份；同时装两份会抢同一个 `providers.aizhiye` 键。
 - 企业网里若有反代或证书拦截导致直连失败，页面会显示具体错误（连不上哪台主机）。

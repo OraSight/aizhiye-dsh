@@ -7,27 +7,27 @@
  *
  * 三个落点，各自的约束：
  *
- * 1. 会话 cookie → `~/.dsh/storages/azy-entry/state.json`。只是会话，不是密钥。
+ * 1. 会话 cookie → `~/.dsh/storages/aizhiye-entry/state.json`。只是会话，不是密钥。
  * 2. 算力密钥 → harness 凭据存储（`ctx.credentials`，或文件
  *    `~/.dsh/.credentials.yaml` 的 `refs` 段）。配置文件里只出现引用名。
  * 3. provider 路由 → `~/.dsh/profiles/<profile>/cordis.patch.yml` 的
- *    `llm-pi-ai.config.providers.itedu`。按 README 的约定，路由只写
- *    `apiKeyEnv: ITEDU_AZY_KEY`，绝不写密钥本身。
+ *    `llm-pi-ai.config.providers.aizhiye`。按 README 的约定，路由只写
+ *    `apiKeyEnv: AIZHIYE_KEY`，绝不写密钥本身。
  *
- * 配置写入幂等：重复执行只覆盖 `itedu` 这一段，别的 provider 与注释保持原样。
+ * 配置写入幂等：重复执行只覆盖 `aizhiye` 这一段，别的 provider 与注释保持原样。
  */
 import { promises as fs } from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
-import { upsertCredentialRef, upsertProviderConfig } from './lib/yaml-edit.js'
+import { dropCredentialRef, dropProviderConfig, upsertCredentialRef, upsertProviderConfig } from './lib/yaml-edit.js'
 
 export const name = 'dsh-aizhiye'
 
-const PREFIX = '/azy-entry-api'
+const PREFIX = '/aizhiye-entry-api'
 const ORIGIN = 'https://azy.ohhub.net'
 const GATEWAY = 'https://ohhub.net/v1'
-const PROVIDER_ID = 'itedu'
-const CREDENTIAL_REF = 'ITEDU_AZY_KEY'
+const PROVIDER_ID = 'aizhiye'
+const CREDENTIAL_REF = 'AIZHIYE_KEY'
 const PROVIDER_LABEL = '爱职业（算力）'
 
 /** 传给纯函数的一处集中声明，避免两边各写一份字面量。 */
@@ -36,6 +36,17 @@ const PROVIDER_SPEC = {
   label: PROVIDER_LABEL,
   credentialRef: CREDENTIAL_REF,
   baseURL: GATEWAY,
+}
+
+/**
+ * 改名（2026-11-23，`dsh-azy-entry` → `dsh-aizhiye`）之前用的标识。
+ *
+ * 留着只为清理：旧 provider 段指向一个已不存在的凭据名，不删的话 DSH 的模型
+ * 列表里会多出一组永远连不上的模型。清理带特征校验，别家同名 provider 不动。
+ */
+const LEGACY = {
+  providerId: 'itedu',
+  credentialRef: 'ITEDU_AZY_KEY',
 }
 
 /** 只做图片生成的模型不进聊天路由，否则模型选择器里会多出必然报错的项。 */
@@ -52,7 +63,7 @@ function dshHome() {
 }
 
 function statePath() {
-  return path.join(dshHome(), 'storages', 'azy-entry', 'state.json')
+  return path.join(dshHome(), 'storages', 'aizhiye-entry', 'state.json')
 }
 
 function credentialsPath() {
@@ -223,6 +234,7 @@ async function writeCredential(refName, value) {
   if (service && typeof service.set === 'function') {
     try {
       await service.set(refName, value)
+      await retireLegacyCredential()
       return 'service'
     } catch (error) {
       // 服务在但拒绝写入（只读实现等）时退回文件，不让整条链路失败。
@@ -240,7 +252,36 @@ async function writeCredential(refName, value) {
   const next = upsertCredentialRef(existing, refName, value)
   await fs.mkdir(path.dirname(file), { recursive: true })
   await fs.writeFile(file, next.endsWith('\n') ? next : `${next}\n`, { encoding: 'utf8', mode: 0o600 })
+  await retireLegacyCredential()
   return 'file'
+}
+
+/**
+ * 清掉改名前的旧引用名。写新名成功后才调用；旧名不存在时什么也不做。
+ *
+ * 服务能 unset 就交给它（它自己管锁与热更新），否则直接改文件——文件里留一条
+ * 无人引用的密钥不算错，但会让人误以为插件还在用它。
+ */
+async function retireLegacyCredential() {
+  const service = credentialsService
+  if (service && typeof service.unset === 'function') {
+    try {
+      await service.unset(LEGACY.credentialRef)
+      return
+    } catch {
+      // 落到文件路径再试一次
+    }
+  }
+
+  const file = credentialsPath()
+  let existing = ''
+  try {
+    existing = await fs.readFile(file, 'utf8')
+  } catch {
+    return
+  }
+  const next = dropCredentialRef(existing, LEGACY.credentialRef)
+  if (next !== existing) await fs.writeFile(file, next, { encoding: 'utf8', mode: 0o600 })
 }
 
 // ------------------------------------------------------------------ provider 配置
@@ -254,12 +295,15 @@ async function writeProviderConfig(models) {
     throw new HttpError(500, `找不到 profile 补丁文件：${file}`)
   }
 
-  const next = upsertProviderConfig(yaml, models, PROVIDER_SPEC)
+  // 先把改名前的 provider 段清掉再写新段：否则配置里会同时留着 `itedu`（指向
+  // 已删除的凭据名）与 `aizhiye`，模型列表里多一组永远连不上的模型。
+  const pruned = dropProviderConfig(yaml, { id: LEGACY.providerId, baseURL: GATEWAY, credentialRef: LEGACY.credentialRef })
+  const next = upsertProviderConfig(pruned, models, PROVIDER_SPEC)
   if (next === null) {
     throw new HttpError(500, `补丁文件里没有 llm-pi-ai 项，未改动：${file}`)
   }
   if (next !== yaml) {
-    await fs.writeFile(`${file}.azy-bak`, yaml, 'utf8')
+    await fs.writeFile(`${file}.aizhiye-bak`, yaml, 'utf8')
     await fs.writeFile(file, next, 'utf8')
   }
   return { file, changed: next !== yaml }
@@ -425,8 +469,12 @@ function createHandler() {
         const state = await readState()
         const { key, token } = await revealKey(state, body?.tokenId)
         const models = await listGatewayModels(key)
-        const credentialSink = await writeCredential(CREDENTIAL_REF, key)
+        // 先写 provider 段、再写凭据：这一步会顺手删掉改名前的旧 provider 与旧
+        // 凭据名。反过来的话，万一写配置失败（比如 profile 缺 llm-pi-ai），旧凭据
+        // 已经删了、旧 provider 还在，用户的模型列表会当场全废；按这个顺序失败，
+        // 旧配置原封不动，重试一次即可。
         const written = await writeProviderConfig(models)
+        const credentialSink = await writeCredential(CREDENTIAL_REF, key)
 
         return sendJson(res, 200, {
           ok: true,

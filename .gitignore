@@ -3,6 +3,8 @@ node_modules/
 *.log
 
 # 插件写配置时留的备份（属于本机运行时状态，不进仓库）
+*.aizhiye-bak
+# 改名（dsh-azy-entry → dsh-aizhiye）之前的备份名，机器上可能还留着
 *.azy-bak
 
 # 系统与编辑器
