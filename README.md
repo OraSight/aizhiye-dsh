@@ -1,7 +1,7 @@
 # azy4dsh
 
 爱职业（[azy.ohhub.net](https://azy.ohhub.net)）的 DeepSeek Harness Desktop 插件，
-包名 `dsh-azy-entry`。在左侧栏加一条「爱职业」，点开后不跳远端登录页，而是在插件
+包名 `dsh-aizhiye`。在左侧栏加一条「爱职业」，点开后不跳远端登录页，而是在插件
 自己的页面里完成三件事：
 
 1. 用爱职业账号登录；
@@ -74,19 +74,19 @@ git clone git@github.com:OraSight/aizhiye-dsh.git ~/aizhiye-dsh
 
 **2. 放进 profile 的 `node_modules`**
 
-目录名必须是 `dsh-azy-entry`：加载器拿 `cordis.patch.yml` 里的 `name` 当模块说明符，
+目录名必须是 `dsh-aizhiye`：加载器拿 `cordis.patch.yml` 里的 `name` 当模块说明符，
 从 profile 的 `node_modules` 解析，写错就是 `ERR_MODULE_NOT_FOUND`。
 
 推荐做成目录联结 / 软链，以后 `git pull` 直接生效：
 
 ```powershell
 # Windows：junction 不需要管理员权限（符号链接才需要）
-New-Item -ItemType Junction -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-azy-entry" -Target "$env:USERPROFILE\aizhiye-dsh"
+New-Item -ItemType Junction -Path "$env:USERPROFILE\.dsh\profiles\desktop\node_modules\dsh-aizhiye" -Target "$env:USERPROFILE\aizhiye-dsh"
 ```
 
 ```bash
 # macOS / Linux
-ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-azy-entry
+ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-aizhiye
 ```
 
 不想留链接也可以整目录复制，代价是每次更新都要重新复制一次。
@@ -97,8 +97,8 @@ ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-azy-entry
 
 ```json
 {
-  "dependencies": { "dsh-azy-entry": "file:D:/Users/you/aizhiye-dsh" },
-  "dsh": { "profile": { "bundles": ["...", "dsh-azy-entry"] } }
+  "dependencies": { "dsh-aizhiye": "file:D:/Users/you/aizhiye-dsh" },
+  "dsh": { "profile": { "bundles": ["...", "dsh-aizhiye"] } }
 }
 ```
 
@@ -121,8 +121,8 @@ ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-azy-entry
 
 | 现象 | 原因 | 处理 |
 | --- | --- | --- |
-| 左栏没有「爱职业」 | `bundles` 没加，或目录名不是 `dsh-azy-entry` | 对照清单逐项核对，重启 |
-| 启动报 `ERR_MODULE_NOT_FOUND: dsh-azy-entry` | `cordis.patch.yml` 的 `name` 与目录名不一致 | 包名、目录名、patch 的 `name` 必须一致 |
+| 左栏没有「爱职业」 | `bundles` 没加，或目录名不是 `dsh-aizhiye` | 对照清单逐项核对，重启 |
+| 启动报 `ERR_MODULE_NOT_FOUND: dsh-aizhiye` | `cordis.patch.yml` 的 `name` 与目录名不一致 | 包名、目录名、patch 的 `name` 必须一致 |
 | 点开是一块空白 | 浏览器半边没加载（`dsh.client` 声明缺失） | 用仓库原样的 `package.json`，别删 `dsh.client` |
 | 登录报「连不上 azy.ohhub.net」 | 网络或代理拦截 | 先用浏览器打开一次 azy 确认可达 |
 | 提示「补丁文件里没有 llm-pi-ai 项」 | profile 缺模型插件 | 见上文前置条件 |
@@ -133,7 +133,7 @@ ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-azy-entry
 
 ## 发布到 npm
 
-发布之后，别人在 DSH 的「安装插件」里填 `dsh-azy-entry`、选对应安装源即可，不必手改
+发布之后，别人在 DSH 的「安装插件」里填 `dsh-aizhiye`、选对应安装源即可，不必手改
 `node_modules` 与 profile 清单。
 
 ### 发布前清单
@@ -141,7 +141,7 @@ ln -s ~/aizhiye-dsh ~/.dsh/profiles/desktop/node_modules/dsh-azy-entry
 | 项 | 现状 | 说明 |
 | --- | --- | --- |
 | `private` | 已移除 | 官方类型定义写明它专门用来阻止发布，留着 `npm publish` 直接报错 |
-| `name` / `version` | `dsh-azy-entry` / `0.2.0` | 公共 npm 上该名字未被占用（2026-11-23 查为 404） |
+| `name` / `version` | `dsh-aizhiye` / `0.2.0` | 公共 npm 上该名字未被占用（2026-11-23 查为 404） |
 | `dsh.manifestVersion` | `1` | 清单格式标识，与包版本无关 |
 | `dsh.bundle.patch` | `./cordis.patch.yml` | 加载器按它挂 host 模块 |
 | `dsh.client` | `platform: web`、`immediately: true` | 没有它侧栏不会出现，点开是空白 |
@@ -162,7 +162,7 @@ git tag v0.2.0 && git push --tags
 
 同名包已存在时 `publish` 会 403。改用 scope 需要同时改三处，且三处必须一字不差：
 `package.json` 的 `name`、`cordis.patch.yml` 的 `name`、`node_modules` 下的目录名
-（scoped 包是被装成 `node_modules/@你的scope/dsh-azy-entry`）。
+（scoped 包是被装成 `node_modules/@你的scope/dsh-aizhiye`）。
 
 ### 发到私有源
 
@@ -194,7 +194,7 @@ npm publish --registry=https://npm.example.com/
 ### 在 DSH 里装
 
 1. 打开插件管理 → 安装；
-2. 包名填 `dsh-azy-entry`；
+2. 包名填 `dsh-aizhiye`；
 3. 安装源：公共包选「npm 官方源」或「中国大陆镜像源」；私有包选「自定义地址」并填
    `https://npm.example.com/`（需登录的源，凭据已在 `~/.npmrc`）；
 4. 装完重启 DSH。
@@ -261,7 +261,7 @@ QA_STUDENT_PASSWORD=... node test/manual/inject-check.mjs --without-credentials
   `providers.itedu` 那一段。
 - 移除密钥：删掉 `.credentials.yaml` 里 `refs.ITEDU_AZY_KEY` 那一行（文件热重载）。
 - 移除插件：从 profile 的 `dependencies` 与 `dsh.profile.bundles` 里删掉
-  `dsh-azy-entry`，再删 `node_modules/dsh-azy-entry`，重启应用。
+  `dsh-aizhiye`，再删 `node_modules/dsh-aizhiye`，重启应用。
 
 ## 已知边界
 

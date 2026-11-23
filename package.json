@@ -1,5 +1,5 @@
 {
-  "name": "dsh-azy-entry",
+  "name": "dsh-aizhiye",
   "version": "0.2.0",
   "description": "在 DeepSeek Harness 左侧加入「爱职业」入口：用爱职业账号登录，把该账号的算力密钥与模型接到本地 Harness",
   "type": "module",

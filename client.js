@@ -1,5 +1,5 @@
 /** 
- * dsh-azy-entry — 浏览器半边。
+ * dsh-aizhiye — 浏览器半边。
  *
  * 两件事：左侧栏一行（`sidebar.panellist`）、点击后的页面（`main`）。登录、取
  * 算力密钥、写 provider 配置都在 host 半边（`./index.js`）完成，这里只发请求与
@@ -10,7 +10,7 @@
  * 同一份原始文件的副本，换图标重跑生成脚本即可。
  */
 window.__ModuleLoader__.load({
-  id: 'dsh-azy-entry',
+  id: 'dsh-aizhiye',
   factory(require) {
     const React = require('react')
     const h = React.createElement

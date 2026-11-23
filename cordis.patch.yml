@@ -1,4 +1,4 @@
-# dsh-azy-entry bundle patch.
+# dsh-aizhiye bundle patch.
 #
 # 一行 host 模块。`name` 必须和 package.json 的 name 一字不差（含 scope）：
 # 加载器拿它当模块说明符去 profile 的 node_modules 里解析，写成别的名字会
@@ -8,4 +8,4 @@
 # `exports["./client"]`，侧栏入口与页面都在那里注册。
 - insert:
     - id: azy-entry
-      name: "dsh-azy-entry"
+      name: "dsh-aizhiye"

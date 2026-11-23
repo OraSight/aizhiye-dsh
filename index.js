@@ -21,7 +21,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { upsertCredentialRef, upsertProviderConfig } from './lib/yaml-edit.js'
 
-export const name = 'dsh-azy-entry'
+export const name = 'dsh-aizhiye'
 
 const PREFIX = '/azy-entry-api'
 const ORIGIN = 'https://azy.ohhub.net'
@@ -444,7 +444,7 @@ function createHandler() {
       return sendJson(res, 404, { ok: false, error: `未知接口 ${method} ${route}` })
     } catch (error) {
       const status = error instanceof HttpError ? error.status : 500
-      if (status >= 500) console.error('[dsh-azy-entry]', error)
+      if (status >= 500) console.error('[dsh-aizhiye]', error)
       return sendJson(res, status, { ok: false, error: error?.message ?? String(error) })
     }
   }
